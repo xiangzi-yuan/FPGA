@@ -1,0 +1,155 @@
+
+module keyboard(
+                  clk,
+                  rst,
+                  row,
+                  column,
+                  scan_key
+                  ); 
+ 
+input clk;
+input rst; 
+input [3:0] column;//Column line 
+output[3:0] row;//lines 
+output[3:0] scan_key; 
+ 
+ 
+reg[3:0]  row; 
+reg[3:0]  scan_key; // scan code registers
+reg[31:0] cnt_scan;// scan frequency counter 
+ 
+ 
+reg      sign;     //sign=1:stop scanning 
+					//				  sign=0:restart scanning*/  
+reg      restart;  //               
+ 
+ 
+always@(posedge clk or negedge rst) 
+begin 
+	 if(!rst) 
+	 begin 
+	 row<=4'b1110; 
+	 cnt_scan<=0;  
+	 end 
+else begin 
+			 if(sign==1'b0) 
+			 begin 
+				 restart<=0; 
+				 cnt_scan<=cnt_scan+1; 
+				 
+				 //if(cnt_scan==32'h0000ffff) 
+				// begin 			 
+					 row[3:1]<=row[2:0]; 
+					 row[0]<=row[3];  //4 root lines circulation send out low level 
+					// cnt_scan<=0; 
+				 //end 
+			 end 
+		else if(sign==1'b1) 
+			 begin 
+			  row<=row; 
+			  if(column==4'b1111) 
+			  restart<=1;
+			  //Detect each column is high level 
+			 end 
+	 end 
+end 
+ 
+ 
+always@(posedge clk or negedge rst) 
+begin 
+	 if(!rst) 
+	 begin 
+	 scan_key<=0; 	 
+	 end 
+else begin 
+		  if(restart) 
+		  begin 
+		  sign<=0; 
+		  scan_key<=0; 
+		  end 
+     else begin 
+		  case(row)  //This case results testing where key press 
+			4'b1110: 
+				case(column) 
+					4'b1110: begin 
+					    sign<=1; 
+						scan_key<=0; 
+					 end 
+					4'b1101: begin 
+						sign<=1; 
+						scan_key<=1; 
+					 end 
+					4'b1011: begin 
+						sign<=1; 
+						scan_key<=2; 
+					 end 
+					4'b0111: begin 
+						sign<=1; 
+						scan_key<=3; 
+					 end 
+				 endcase 
+			4'b1101: 
+				case(column) 
+					4'b1110: begin 
+						sign<=1; 
+						scan_key<=4; 
+					 end 
+					4'b1101: begin 
+						scan_key<=5; 
+						sign<=1; 
+					 end 
+					4'b1011: begin 
+						scan_key<=6; 
+						sign<=1; 
+					 end 
+					4'b0111: begin 
+						scan_key<=7; 
+						sign<=1; 
+					 end 
+				 endcase 
+			4'b1011: 
+				case(column) 
+					4'b1110: begin 
+						scan_key<=8; 
+						sign<=1; 
+					 end 
+					4'b1101: begin 
+						scan_key<=9; 
+						sign<=1; 
+					 end 
+					4'b1011: begin 
+						scan_key<=10; 
+						sign<=1; 
+					 end 
+					4'b0111: begin 
+						scan_key<=11; 
+						sign<=1; 
+					 end 
+				 endcase 
+			4'b0111: 
+				case(column) 
+					4'b1110: begin 
+						scan_key<=12; 
+						sign<=1; 
+					 end 
+					4'b1101: begin 
+						scan_key<=13; 
+						sign<=1; 
+					 end 
+					4'b1011: begin 
+						scan_key<=14; 
+						sign<=1; 
+					 end 
+					4'b0111: begin 
+						scan_key<=15; 
+						sign<=1; 
+					 end 
+				 endcase 
+			 default: 
+				scan_key<=15; 
+		 endcase 
+	 end 
+	end 
+end 
+ 
+endmodule	

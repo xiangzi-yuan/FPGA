@@ -1,0 +1,76 @@
+`timescale 1ns / 1ps
+
+module tb_car();
+  reg reset;
+  reg clk_M;
+  reg start;
+  reg pause;
+  reg waitL;
+  reg [1:0] speedup;
+  reg d_m;
+  wire [3:0] StepDrive;
+  wire Dir;
+  reg [3:0] row;
+  wire [3:0] column;
+  wire [15:0] distance_b;
+  wire [15:0] fee_b;
+  wire [15:0] s_fee_b;
+  wire [15:0] g_fee_b;
+  reg p_m;
+  integer 		i;
+  integer 		j;
+  // Instantiate the car module
+  car uut (
+    .reset(reset),
+    .clk_M(clk_M),
+    .start(start),
+    .pause(pause),
+    .waitL(waitL),
+    .speedup(speedup),
+    .d_m(d_m),
+    .StepDrive(StepDrive),
+    .Dir(Dir),
+    .row(row),
+    .column(column),
+    .distance_b(distance_b),
+    .fee_b(fee_b),
+    .s_fee_b(s_fee_b),
+    .g_fee_b(g_fee_b),
+    .p_m(p_m)
+  );
+
+  // Clock generation
+  always begin
+    #10 clk_M = ~clk_M;
+  end
+
+  // Testbench stimulus
+  initial begin
+    reset = 0;
+    start = 0;
+    pause = 0;
+    waitL = 0;
+    speedup = 0;
+    d_m = 0;
+    row = 0;
+    p_m = 0;
+
+    // Reset the system
+    reset = 1;
+    #20 reset = 0;
+    // Test the matrix keypad input from 1 to 16
+    for (i= 0; i < 4; i++) begin
+      row = 1 << i;
+      for (j = 0; j < 4; j++) begin
+        p_m = 1;
+        #20 p_m = 0;
+        #20 p_m = 1;
+        #20 p_m = 0;
+        row = 0;
+      end
+    end
+
+    // Finish the simulation
+    $finish;
+  end
+endmodule

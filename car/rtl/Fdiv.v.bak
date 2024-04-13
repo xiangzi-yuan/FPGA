@@ -1,0 +1,34 @@
+// 分频模块 输入 reset、clk_M，输出 clk_out
+// 1s
+// 模块名称和端口声明
+module Fdiv(
+    input wire reset,      // 复位信号
+    input wire clk_M,      // 输入时钟  50MHz
+    output reg clk_out     // 输出时钟
+);
+
+    // 内部信号声明
+    reg [31:0] counter;    // 定义计数器，32位
+    initial begin counter = 32'd0; end   // 初始化计数器值为0
+    initial begin clk_out = 0; end       // 初始化输出时钟值为0
+
+    // always 块
+    always @(posedge reset or posedge clk_M)    // 每次检测到 reset 或者 clk_M 上升沿，开始计数器递增和时钟输出的操作
+        begin
+            if(reset)       // 如果 reset 为1，则重置计数器和输出时钟
+                begin
+                    counter <= 32'd0;       // 重置计数器为0
+                    clk_out <= 1'b0;        // 重置输出时钟为0
+                end
+            else if(counter == 32'd12_500_000)  // 如果计数器的值达到了 12500000（1250万），则切换输出时钟的状态，计数器清零
+                begin
+                    clk_out <= ~clk_out;    // 切换输出时钟的状态
+                    counter <= 32'd0;       // 重置计数器为0
+                end
+            else 
+                begin
+                    counter <= counter + 1'b1;   // 否则，计数器加1
+                    clk_out <= 0;                // 输出时钟为0
+                end
+        end
+endmodule

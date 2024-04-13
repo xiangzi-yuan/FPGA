@@ -1,0 +1,33 @@
+//定义模块sy_last_code，包括输入和输出信号
+module car(reset, clk_M, start, pause, waitL, speedup, d_m, Seg, AN);
+    input reset;         //异步复位信号
+    input clk_M;         //主时钟信号
+    input start;         //开始计程信号
+    input pause;         //暂停计程信号
+    input waitL;         //等待红绿灯信号
+    input [1:0] speedup; //加速信号
+    input d_m;           //数码管选择信号
+    //段选
+    output [7:0] Seg;    //数码管段选输出
+    //位选
+    output [3:0] AN;     //数码管位选输出
+
+    //定义中间信号
+    wire [9:0] fee_before;      //计费前里程信号
+    wire [9:0] distance_before; //计程前里程信号
+    wire [15:0] distance_b;     //里程的BCD码
+    wire [15:0] fee_b;          //费用的BCD码
+    wire time_enable;           //时间使能信号
+    wire clk_out;               //输出时钟信号
+    wire [1:0] Bit_Sel;         //4个数码管的选择信号
+
+    //调用子模块
+    Fdiv u1(reset, clk_M, clk_out);                         //主时钟分频器
+    Distance u2(clk_out, reset, start, speedup, waitL, pause, distance_before);  //计程模块
+    Time u3(clk_out, reset, pause, waitL, time_enable);     //等待红绿灯时间模块
+    Fee u4(clk_out, reset, waitL, pause, time_enable, distance_before, start, fee_before);  //计费模块
+    Delay_4ms u5(clk_M, Bit_Sel);                           //分频刷新数码管模块
+    Binary u6(distance_before, distance_b);                //二进制转BCD码模块
+    Binary u7(fee_before, fee_b);                          //二进制转BCD码模块
+    Smg u8(d_m, fee_b, distance_b, Bit_Sel, Seg, AN);       //数码管显示模块
+endmodule
