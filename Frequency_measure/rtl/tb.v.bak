@@ -1,0 +1,80 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/02/27 15:07:13
+// Design Name: 
+// Module Name: tb
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module tb();
+ //system clock
+reg sys_clk ; // 时钟信号
+reg sys_rst_n; // 复位信号
+
+//cymometer interface
+reg clk_fx; // 被测时钟
+
+
+//RGB LCD 接口
+wire   [31:0]  data_fx ;// 被测信号测量值,
+wire  [31:0]   data_tm ;               //脉冲宽度
+wire  [31:0]   data_zk ;               //占空比
+always #5 sys_clk=!sys_clk;
+
+
+reg [31:0] num1;
+always @(posedge sys_clk or negedge sys_rst_n) begin
+if(!sys_rst_n)
+num1<=32'd0;
+else if(num1==999)
+num1<=32'd0;
+else
+num1<=num1+1;
+end
+always @(posedge sys_clk or negedge sys_rst_n) begin
+if(!sys_rst_n)
+clk_fx<=1;
+else if(num1==699)
+clk_fx<=0;
+else if(num1==999)
+clk_fx<=1;
+end
+
+initial
+begin
+sys_clk =1;
+sys_rst_n=1;
+#10;
+sys_rst_n=0;
+#10;
+sys_rst_n=1;
+end
+
+
+
+
+top U(
+ //system clock
+sys_clk , // 时钟信号
+sys_rst_n, // 复位信号
+clk_fx , // 被测时钟
+data_fx  ,              //频率大小
+data_tm ,               //脉冲宽度
+data_zk                 //占空比
+ );
+ 
+endmodule

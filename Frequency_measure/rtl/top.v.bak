@@ -1,0 +1,69 @@
+module top(
+ //system clock
+ input sys_clk , // 时钟信号
+ input sys_rst_n, // 复位信号
+ 
+ //cymometer interface
+ input clk_fx , // 被测时钟
+ 
+output  [31:0]   data_fx  ,              //频率大小
+output  [31:0]   data_tm ,               //脉冲宽度
+output  [31:0]   data_zk                 //占空比
+ );
+ 
+ //parameter define
+ parameter CLK_FS = 31'd100000000; // 基准时钟频率值
+
+ //*****************************************************
+ //** main code
+ //*****************************************************
+ wire [31:0] fx_cnt;
+ //例化等精度频率计模块
+ cymometer #(.CLK_FS(CLK_FS) // 基准时钟频率值
+ ) u_cymometer(
+ //system clock
+ .clk_fs (sys_clk ), // 基准时钟信号
+ .rst_n (sys_rst_n), // 复位信号
+ //cymometer interface
+ .clk_fx (clk_fx ), // 被测时钟信号
+ .fx_cnt(fx_cnt),
+ .data_fx (data_fx ) // 被测时钟频率输出
+ );
+reg   [31:0] num1,num2;
+always @(posedge sys_clk or negedge sys_rst_n) begin
+if(!sys_rst_n)
+num1<=32'd0;
+else if(clk_fx==1)
+num1<=num1+1;
+else
+num1<=0;
+end
+
+always @(posedge sys_clk or negedge sys_rst_n) begin
+if(!sys_rst_n)
+num2<=0;
+else if(clk_fx==1)
+num2<=0;
+else
+num2<=num2+1;
+end
+
+reg   [31:0] num3,num4;
+always @(negedge clk_fx or negedge sys_rst_n) begin
+if(!sys_rst_n)
+num3<=0;
+else
+num3<=num1;
+end
+
+always @(posedge clk_fx or negedge sys_rst_n) begin
+if(!sys_rst_n)
+num4<=0;
+else 
+num4<=num2;
+end
+
+assign  data_tm=num3*10;
+assign  data_zk=(num3*100)/(num3+num4);
+
+ endmodule
